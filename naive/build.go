@@ -3,6 +3,7 @@ package naive
 import (
 	"context"
 	"io"
+	"io/ioutil"
 	"os"
 
 	"github.com/moby/buildkit/frontend/gateway/client"
@@ -18,6 +19,16 @@ const (
 )
 
 func Build(ctx context.Context, c client.Client) (*client.Result, error) {
+	res, err := build(ctx, c)
+	if err != nil {
+		ioutil.WriteFile("/error", []byte(err.Error()), 0644)
+		return client.NewResult(), nil
+	}
+
+	return res, nil
+}
+
+func build(ctx context.Context, c client.Client) (*client.Result, error) {
 	target, ok := c.BuildOpts().Opts[OptTarget]
 	if !ok {
 		target = "default"
